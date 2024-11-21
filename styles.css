@@ -13,3 +13,10 @@ body {
 video {
     height: 100%;
 }
+
+footer {
+    display: flex;
+    flex-direction: row;
+
+    justify-content: flex-end;
+}
