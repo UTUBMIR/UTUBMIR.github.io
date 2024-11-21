@@ -2,6 +2,7 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: space-beetwen;
+    align-items: center;
 
     background-color: rgb(23, 27, 33);
     color: white;
