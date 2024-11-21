@@ -19,4 +19,6 @@ footer {
     flex-direction: row;
 
     justify-content: flex-end;
+
+    bottom: 0px;
 }
