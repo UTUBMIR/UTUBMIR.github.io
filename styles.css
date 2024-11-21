@@ -28,9 +28,10 @@ video {
 footer {
     display: flex;
     flex-direction: row;
+    align-self: flex-end;
 
     justify-content: flex-end;
     width: 98%;
 
-    bottom: 0px;
+/*     bottom: 0px; */
 }
