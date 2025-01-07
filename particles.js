@@ -1,5 +1,5 @@
 /* ---- particles.js config ---- */
-
+document.designMode = 'true';
 particlesJS("particles-js", {
   "particles": {
     "number": {
