@@ -43,7 +43,7 @@ var video = document.querySelector('video');
 })
 .catch(function(err) { console.log(err.name + ": " + err.message); })
         document.addEventListener('keydown', function(event) {
-      if (event.code === 'H') { // Check if the pressed key is "Space"
+      if (event.code === 'h' || event.code === 'H') { // Check if the pressed key is "Space"
         event.preventDefault(); // Prevent default scrolling behavior
         const element = document.querySelector('video');
         if (element) {
