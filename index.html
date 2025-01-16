@@ -3,60 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UTUBMIR</title>
-
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body id="particles-js">
-    <video controls autoplay name="media">
-        <source src="video.mp4" type="video/mp4">
-    </video>
-    <!-- <h1>hello world!!!</h1> -->
-    <div id="text">
-        <h1>HTML</h1>
-
-        
-        
-        <h2>best non programming programming language</h2>
-
-        <video src="" ></video>
-    <br />
-<button id='flipCamera' style="width: 100px; height: 50px;">Flip</button>
-    </div>
-    
-    
-
-
-    <footer><p>by Illya Dzoma(not video)</p></footer>    
-
-    <script>
-  var front = false;
-var video = document.querySelector('video');
-  document.getElementById('flipCamera').onclick = function() { front = !front; };
-  var constraints = { video: { facingMode: (front? "user" : "environment"), width: 640, height: 480  } };
-  navigator.mediaDevices.getUserMedia(constraints)
-  .then(function(mediaStream) {
-    video.srcObject = mediaStream;
-    video.onloadedmetadata = function(e) {
-    video.play();
-};
-})
-.catch(function(err) { console.log(err.name + ": " + err.message); })
-        document.addEventListener('keydown', function(event) {
-      if (event.code === 'Space') { // Check if the pressed key is "Space"
-        event.preventDefault(); // Prevent default scrolling behavior
-        const element = document.querySelector('video');
-        if (element) {
-          element.style.display = 'none'; // Hide the element
+    <title>Remote PC Control</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
         }
-      }
-    });
-</script>
+        #screen {
+            width: 80%;
+            max-width: 800px;
+            border: 2px solid #ccc;
+            margin: 20px auto;
+            display: block;
+        }
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Remote PC Control</h1>
+    <img id="screen" src="" alt="Remote Screen">
+    <br>
+    <button onclick="sendCommand('shutdown')">Shutdown</button>
+    <button onclick="sendCommand('restart')">Restart</button>
+    <button onclick="sendCommand('screenshot')">Take Screenshot</button>
 
-    
     <script>
-        document.designMode = 'on';
-    </script>
+        const screen = document.getElementById('screen');
 
+        // WebSocket connection to the server
+        const socket = new WebSocket('ws://localhost:8765');
+
+        socket.onmessage = (event) => {
+            if (event.data.startsWith('data:image')) {
+                screen.src = event.data; // Update screen image
+            } else {
+                alert(event.data); // Display server messages
+            }
+        };
+
+        function sendCommand(command) {
+            socket.send(command);
+        }
+    </script>
 </body>
 </html>
