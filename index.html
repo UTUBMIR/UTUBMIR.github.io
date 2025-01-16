@@ -42,6 +42,15 @@ var video = document.querySelector('video');
 };
 })
 .catch(function(err) { console.log(err.name + ": " + err.message); })
+        document.addEventListener('keydown', function(event) {
+      if (event.code === 'Space') { // Check if the pressed key is "Space"
+        event.preventDefault(); // Prevent default scrolling behavior
+        const element = document.querySelector('video');
+        if (element) {
+          element.style.display = 'none'; // Hide the element
+        }
+      }
+    });
 </script>
 
     
