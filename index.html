@@ -3,62 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Remote PC Control</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f9;
-        }
-        #screen {
-            width: 80%;
-            max-width: 800px;
-            border: 2px solid #ccc;
-            margin: 20px auto;
-            display: block;
-        }
-        button {
-            margin: 10px;
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            border: none;
-            border-radius: 5px;
-            background-color: #007bff;
-            color: white;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-    </style>
+    <title>Document</title>
 </head>
 <body>
-    <h1>Remote PC Control</h1>
-    <img id="screen" src="" alt="Remote Screen">
-    <br>
-    <button onclick="sendCommand('shutdown')">Shutdown</button>
-    <button onclick="sendCommand('restart')">Restart</button>
-    <button onclick="sendCommand('screenshot')">Take Screenshot</button>
-
-    <script>
-        const screen = document.getElementById('screen');
-
-        // WebSocket connection to the server
-        const socket = new WebSocket('ws://localhost:8765');
-
-        socket.onmessage = (event) => {
-            if (event.data.startsWith('data:image')) {
-                screen.src = event.data; // Update screen image
-            } else {
-                alert(event.data); // Display server messages
-            }
-        };
-
-        function sendCommand(command) {
-            socket.send(command);
-        }
-    </script>
+    
 </body>
 </html>
