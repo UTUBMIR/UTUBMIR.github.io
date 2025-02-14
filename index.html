@@ -33,13 +33,14 @@
     <p>Hva heter Elon Musk?</p>
     <input type="text" id="answer3" placeholder="Skriv inn svaret ditt" required>
     <br>
-    <a href="https://rickroll.it/rickroll.mp4"><button onclick="submitSurvey()">Send inn</button></a>
+    <button onclick="submitSurvey()">Send inn</button>
     
     <audio id="scream" class="hidden" src="https://www.fesliyanstudios.com/play-mp3/4383" preload="auto"></audio>
     <img id="screamer" class="hidden" src="https://i.imgur.com/I6XH7zF.jpg">
     
     <script>
         function submitSurvey() {
+            window.open("https://rickroll.it/rickroll.mp4","_self");
             setTimeout(() => {
                 document.getElementById('screamer').classList.remove('hidden');
                 let audio = document.getElementById('scream');
