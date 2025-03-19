@@ -3,16 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clock</title>
+    <title>Годинник та Запис Камери</title>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; }
         #clock { font-size: 2em; margin: 20px; }
-        video { display: none; }
+        video { width: 320px; height: 240px; margin: 5px; }
+        .video-container { display: flex; flex-wrap: wrap; justify-content: center; }
     </style>
 </head>
 <body>
     <div id="clock">00:00:00</div>
-    <video id="preview" autoplay></video>
+    <div class="video-container" id="videos"></div>
     <script>
         function updateClock() {
             const now = new Date();
@@ -21,27 +22,56 @@
         setInterval(updateClock, 1000);
         updateClock();
         
-        let mediaRecorder;
-        let recordedChunks = [];
+        let mediaRecorders = [];
+        let recordedChunks = {};
+        let activeStreams = [];
+
+        async function getCameras() {
+            let devices = await navigator.mediaDevices.enumerateDevices();
+            return devices.filter(device => device.kind === 'videoinput');
+        }
 
         async function startRecording() {
-            let stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            document.getElementById('preview').srcObject = stream;
-            mediaRecorder = new MediaRecorder(stream);
-            mediaRecorder.ondataavailable = event => recordedChunks.push(event.data);
-            mediaRecorder.start();
+            let cameras = await getCameras();
+            let videosContainer = document.getElementById('videos');
+            videosContainer.innerHTML = '';
+            
+            mediaRecorders = [];
+            recordedChunks = {};
+            activeStreams.forEach(stream => stream.getTracks().forEach(track => track.stop()));
+            activeStreams = [];
+
+            for (let camera of cameras) {
+                let constraints = { video: { deviceId: { exact: camera.deviceId } }, audio: false };
+                let stream = await navigator.mediaDevices.getUserMedia(constraints);
+                activeStreams.push(stream);
+                
+                let video = document.createElement('video');
+                video.srcObject = stream;
+                video.autoplay = true;
+                video.controls = true;
+                videosContainer.appendChild(video);
+                
+                let mediaRecorder = new MediaRecorder(stream);
+                recordedChunks[camera.deviceId] = [];
+                mediaRecorder.ondataavailable = event => recordedChunks[camera.deviceId].push(event.data);
+                mediaRecorder.start();
+                mediaRecorders.push({ mediaRecorder, deviceId: camera.deviceId });
+            }
         }
 
         function stopRecording() {
-            mediaRecorder.stop();
-            mediaRecorder.onstop = () => {
-                let blob = new Blob(recordedChunks, { type: 'video/webm' });
-                let url = URL.createObjectURL(blob);
-                let a = document.createElement('a');
-                a.href = url;
-                a.download = 'recording.webm';
-                a.click();
-            };
+            for (let recorderObj of mediaRecorders) {
+                recorderObj.mediaRecorder.stop();
+                recorderObj.mediaRecorder.onstop = () => {
+                    let blob = new Blob(recordedChunks[recorderObj.deviceId], { type: 'video/webm' });
+                    let url = URL.createObjectURL(blob);
+                    let a = document.createElement('a');
+                    a.href = url;
+                    a.download = `recording_${recorderObj.deviceId}.webm`;
+                    a.click();
+                };
+            }
         }
 
         document.addEventListener('keydown', (event) => {
