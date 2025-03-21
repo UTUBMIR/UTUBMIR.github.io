@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>clock test</title>
+    <title>Clock test</title>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; }
         #clock { font-size: 2em; margin: 20px; }
@@ -19,47 +19,46 @@
         setInterval(updateClock, 1000);
         updateClock();
         
-        let mediaRecorders = [];
-        let recordedChunks = {};
-        let activeStreams = [];
+        let mediaRecorder = null;
+        let recordedChunks = [];
+        let activeStream = null;
 
         async function getCameras() {
             let devices = await navigator.mediaDevices.enumerateDevices();
             return devices.filter(device => device.kind === 'videoinput');
         }
 
-        async function startRecording() {
+        async function startRecording(cameraIndex) {
             let cameras = await getCameras();
+            if (cameraIndex >= cameras.length) return;
             
-            mediaRecorders = [];
-            recordedChunks = {};
-            activeStreams.forEach(stream => stream.getTracks().forEach(track => track.stop()));
-            activeStreams = [];
-
-            for (let camera of cameras) {
-                let constraints = { video: { deviceId: { exact: camera.deviceId } }, audio: false };
-                let stream = await navigator.mediaDevices.getUserMedia(constraints);
-                activeStreams.push(stream);
-                
-                let mediaRecorder = new MediaRecorder(stream);
-                recordedChunks[camera.deviceId] = [];
-                mediaRecorder.ondataavailable = event => recordedChunks[camera.deviceId].push(event.data);
-                mediaRecorder.onstop = () => saveRecording(camera.deviceId);
-                mediaRecorder.start();
-                mediaRecorders.push(mediaRecorder);
+            if (activeStream) {
+                activeStream.getTracks().forEach(track => track.stop());
             }
+
+            let constraints = { video: { deviceId: { exact: cameras[cameraIndex].deviceId } }, audio: false };
+            let stream = await navigator.mediaDevices.getUserMedia(constraints);
+            activeStream = stream;
+            
+            mediaRecorder = new MediaRecorder(stream);
+            recordedChunks = [];
+            mediaRecorder.ondataavailable = event => recordedChunks.push(event.data);
+            mediaRecorder.onstop = () => saveRecording(cameraIndex);
+            mediaRecorder.start();
         }
 
         function stopRecording() {
-            mediaRecorders.forEach(recorder => recorder.stop());
+            if (mediaRecorder) {
+                mediaRecorder.stop();
+            }
         }
 
-        function saveRecording(deviceId) {
-            let blob = new Blob(recordedChunks[deviceId], { type: 'video/webm' });
+        function saveRecording(cameraIndex) {
+            let blob = new Blob(recordedChunks, { type: 'video/webm' });
             let url = URL.createObjectURL(blob);
             let a = document.createElement('a');
             a.href = url;
-            a.download = `recording_${deviceId}.webm`;
+            a.download = `recording_camera${cameraIndex}.webm`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -67,8 +66,9 @@
         }
 
         document.addEventListener('keydown', (event) => {
-            if (event.key === 's') startRecording();
-            if (event.key === 'e') stopRecording();
+            if (event.key === '1') startRecording(0); // Фронтальна камера
+            if (event.key === '2') startRecording(1); // Задня камера
+            if (event.key === 's') stopRecording();
         });
     </script>
 </body>
