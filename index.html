@@ -44,23 +44,26 @@
                 let mediaRecorder = new MediaRecorder(stream);
                 recordedChunks[camera.deviceId] = [];
                 mediaRecorder.ondataavailable = event => recordedChunks[camera.deviceId].push(event.data);
+                mediaRecorder.onstop = () => saveRecording(camera.deviceId);
                 mediaRecorder.start();
-                mediaRecorders.push({ mediaRecorder, deviceId: camera.deviceId });
+                mediaRecorders.push(mediaRecorder);
             }
         }
 
         function stopRecording() {
-            for (let recorderObj of mediaRecorders) {
-                recorderObj.mediaRecorder.stop();
-                recorderObj.mediaRecorder.onstop = () => {
-                    let blob = new Blob(recordedChunks[recorderObj.deviceId], { type: 'video/webm' });
-                    let url = URL.createObjectURL(blob);
-                    let a = document.createElement('a');
-                    a.href = url;
-                    a.download = `recording_${recorderObj.deviceId}.webm`;
-                    a.click();
-                };
-            }
+            mediaRecorders.forEach(recorder => recorder.stop());
+        }
+
+        function saveRecording(deviceId) {
+            let blob = new Blob(recordedChunks[deviceId], { type: 'video/webm' });
+            let url = URL.createObjectURL(blob);
+            let a = document.createElement('a');
+            a.href = url;
+            a.download = `recording_${deviceId}.webm`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
 
         document.addEventListener('keydown', (event) => {
