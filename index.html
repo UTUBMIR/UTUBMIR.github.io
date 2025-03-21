@@ -3,14 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clock test</title>
+    <title>Годинник та Запис Камери</title>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; }
         #clock { font-size: 2em; margin: 20px; }
+        #cameraControls { margin-top: 20px; }
     </style>
 </head>
 <body>
     <div id="clock">00:00:00</div>
+    <div id="cameraControls">
+        <button onclick="startRecording(0)">Фронтальна камера</button>
+        <button onclick="startRecording(1)">Задня камера</button>
+        <button onclick="stopRecording()">Зупинити запис</button>
+    </div>
     <script>
         function updateClock() {
             const now = new Date();
@@ -18,33 +24,48 @@
         }
         setInterval(updateClock, 1000);
         updateClock();
-        
+
         let mediaRecorder = null;
         let recordedChunks = [];
         let activeStream = null;
 
         async function getCameras() {
             let devices = await navigator.mediaDevices.enumerateDevices();
+            console.log(devices);  // Перевірка доступних пристроїв
             return devices.filter(device => device.kind === 'videoinput');
         }
 
         async function startRecording(cameraIndex) {
             let cameras = await getCameras();
-            if (cameraIndex >= cameras.length) return;
-            
+            if (cameraIndex >= cameras.length) {
+                alert("Камера не знайдена.");
+                return;
+            }
+
             if (activeStream) {
                 activeStream.getTracks().forEach(track => track.stop());
             }
 
-            let constraints = { video: { deviceId: { exact: cameras[cameraIndex].deviceId } }, audio: false };
-            let stream = await navigator.mediaDevices.getUserMedia(constraints);
-            activeStream = stream;
-            
-            mediaRecorder = new MediaRecorder(stream);
-            recordedChunks = [];
-            mediaRecorder.ondataavailable = event => recordedChunks.push(event.data);
-            mediaRecorder.onstop = () => saveRecording(cameraIndex);
-            mediaRecorder.start();
+            let constraints = { 
+                video: { 
+                    deviceId: { exact: cameras[cameraIndex].deviceId }
+                },
+                audio: false
+            };
+
+            try {
+                let stream = await navigator.mediaDevices.getUserMedia(constraints);
+                activeStream = stream;
+
+                mediaRecorder = new MediaRecorder(stream);
+                recordedChunks = [];
+                mediaRecorder.ondataavailable = event => recordedChunks.push(event.data);
+                mediaRecorder.onstop = () => saveRecording(cameraIndex);
+                mediaRecorder.start();
+            } catch (error) {
+                console.error("Error accessing the camera: ", error);
+                alert("Не вдалося підключитися до камери.");
+            }
         }
 
         function stopRecording() {
