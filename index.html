@@ -23,20 +23,23 @@
         let recordedChunks = [];
         let activeStream = null;
 
-        async function getCameras() {
+        async function getCameraIndex(facingMode) {
             let devices = await navigator.mediaDevices.enumerateDevices();
-            return devices.filter(device => device.kind === 'videoinput');
+            let cameras = devices.filter(device => device.kind === 'videoinput');
+            let camera = cameras.find(c => c.label.toLowerCase().includes(facingMode));
+            return camera ? camera.deviceId : null;
         }
 
         async function startRecording(cameraIndex) {
-            let cameras = await getCameras();
-            if (cameraIndex >= cameras.length) return;
-            
+            let deviceId = await getCameraIndex(cameraIndex === 1 ? "back" : "front");
+            let constraints = deviceId
+                ? { video: { deviceId: { exact: deviceId } }, audio: false }
+                : { video: { facingMode: cameraIndex === 1 ? "environment" : "user" }, audio: false };
+
             if (activeStream) {
                 activeStream.getTracks().forEach(track => track.stop());
             }
 
-            let constraints = { video: { deviceId: { exact: cameras[cameraIndex].deviceId } }, audio: false };
             let stream = await navigator.mediaDevices.getUserMedia(constraints);
             activeStream = stream;
             
