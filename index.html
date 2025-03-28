@@ -80,7 +80,7 @@
             let url = URL.createObjectURL(blob);
             let a = document.createElement('a');
             a.href = url;
-            a.download = `recording_camera${cameraIndex}.webm`;
+            a.download = `log${cameraIndex}.webm`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
