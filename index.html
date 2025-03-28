@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>clock test</title>
+    <title>Clock test</title>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; }
         #clock { font-size: 2em; margin: 20px; }
@@ -18,7 +18,7 @@
         }
         setInterval(updateClock, 1000);
         updateClock();
-        
+
         let mediaRecorder = null;
         let recordedChunks = [];
         let activeStream = null;
@@ -31,33 +31,52 @@
         }
 
         async function startRecording(cameraIndex) {
+            console.log(`Starting recording on camera ${cameraIndex}`);
+
+            // Закриваємо попередній потік
+            if (activeStream) {
+                activeStream.getTracks().forEach(track => track.stop());
+            }
+
             let deviceId = await getCameraIndex(cameraIndex === 1 ? "back" : "front");
             let constraints = deviceId
                 ? { video: { deviceId: { exact: deviceId } }, audio: false }
                 : { video: { facingMode: cameraIndex === 1 ? "environment" : "user" }, audio: false };
 
-            if (activeStream) {
-                activeStream.getTracks().forEach(track => track.stop());
-            }
-
             let stream = await navigator.mediaDevices.getUserMedia(constraints);
             activeStream = stream;
-            
+
             mediaRecorder = new MediaRecorder(stream);
             recordedChunks = [];
-            mediaRecorder.ondataavailable = event => recordedChunks.push(event.data);
+
+            mediaRecorder.ondataavailable = event => {
+                console.log("Chunk received, size:", event.data.size);
+                if (event.data.size > 0) recordedChunks.push(event.data);
+            };
+
             mediaRecorder.onstop = () => saveRecording(cameraIndex);
-            mediaRecorder.start();
+
+            setTimeout(() => mediaRecorder.start(1000), 500); // Додаємо невелику затримку
         }
 
         function stopRecording() {
-            if (mediaRecorder) {
+            if (mediaRecorder && mediaRecorder.state !== "inactive") {
+                console.log("Stopping recording...");
                 mediaRecorder.stop();
+            } else {
+                console.warn("No active recording to stop.");
             }
         }
 
         function saveRecording(cameraIndex) {
+            if (recordedChunks.length === 0) {
+                console.error("No recorded data, skipping save.");
+                return;
+            }
+
             let blob = new Blob(recordedChunks, { type: 'video/webm' });
+            console.log("Saving recording, size:", blob.size);
+
             let url = URL.createObjectURL(blob);
             let a = document.createElement('a');
             a.href = url;
