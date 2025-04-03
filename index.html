@@ -40,8 +40,9 @@
 
             let deviceId = await getCameraIndex(cameraIndex === 1 ? "back" : "front");
             let constraints = deviceId
-                ? { video: { deviceId: { exact: deviceId } }, audio: false }
-                : { video: { facingMode: cameraIndex === 1 ? "environment" : "user" }, audio: false };
+    ? { video: { deviceId: { exact: deviceId }, width: { max: 99999 }, height: { max: 99999 } }, audio: false }
+    : { video: { facingMode: cameraIndex === 1 ? "environment" : "user", width: { max: 99999 }, height: { max: 99999 } }, audio: false };
+
 
             let stream = await navigator.mediaDevices.getUserMedia(constraints);
             activeStream = stream;
